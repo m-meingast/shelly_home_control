@@ -1,0 +1,38 @@
+package config
+
+class ShellyConfig {
+    companion object {
+
+        /* HTTP URL Configuration */
+        const val HTTP_ENDPOINT = "http://10.0.0.175"
+
+        const val HTTP_SHELLY_STATUS = "%s/status"
+
+        const val HTTP_SHELLY_LIGHT_ON = "%s/relay/%d?turn=on"
+
+        const val HTTP_SHELLY_LIGHT_OFF = "%s/relay/%d?turn=off"
+
+        const val HTTP_SHELLY_LIGHT_TOGGLE = "%s/relay/%d?turn=toggle"
+
+        const val HTTP_SHELLY_CHANNEL_ONE = 0
+
+        const val HTTP_SHELLY_CHANNEL_TWO = 1
+
+//        http://10.0.0.175/relay/0?turn=on
+
+        const val HTTP_PREFIX = "http://"
+
+        /* Request Configuration */
+        const val HTTP_REQUEST_METHOD_GET = "GET"
+
+        const val HTTP_TIMEOUT = 5000
+
+        /* Party Mode Configuration */
+
+        const val SHELLY_PARTYMODE_DELAY = 500L
+
+        /* Response Code */
+        const val HTML_RESPONSE_GOOD = 200
+
+    }
+}
