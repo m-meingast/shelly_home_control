@@ -1,6 +1,9 @@
 package network.response
 
-data class ShellyResponse<T>(
+/**
+ * ShellyResponse wraps the API Response together with the HTTP Response Code
+ */
+data class ShellyResponse<T: ShellyAPIResponse>(
     val responseCode: Int,
     val responseData: T?
 ) {

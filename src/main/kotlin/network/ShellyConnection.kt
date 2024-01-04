@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.*
 import network.config.ShellyConfig
 import network.response.ShellyAPIRelayResponse
+import network.response.ShellyAPIResponse
 import network.response.ShellyAPIStatusResponse
 import network.response.ShellyResponse
 import java.io.BufferedReader
@@ -75,7 +76,14 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         return true
     }
 
-    private fun <T : Any> asyncGetHttpRequest(
+    /**
+     * Http call to the endpoint(URL of the Shelly device)
+     * @param endpoint URL destination of the call
+     * @param responseClass Class of the API Response. It is needed because the API response is dependent on the
+     *  used endpoint
+     * @return The response of the Http call
+     */
+    private fun <T : ShellyAPIResponse> asyncGetHttpRequest(
         endpoint: String,
         responseClass: KClass<T>
     ): Deferred<ShellyResponse<T>> {
@@ -96,6 +104,14 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         }
     }
 
+    /**
+     * Http call to the endpoint(URL of the Shelly device) for the party mode. The method repeats the calls to the
+     * endpoint until the party
+     * @param endpoint URL destination of the call
+     * @param responseClass Class of the API Response. It is needed because the API response is dependent on the
+     *  used endpoint
+     * @return The response of the Http call
+     */
     private suspend fun asyncPartyModeRequest(
         endpoint: String,
         delay: Long
@@ -122,6 +138,11 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         }
     }
 
+    /**
+     * Set the endpoint for toggling the respective channel
+     * @param channel The channel of the Shelly device
+     * @return True if operation succeeded, false otherwise
+     */
     private fun toggleLight(channel: Int): Boolean {
         if (!isInitialised) return false
         var retVal = false
@@ -145,7 +166,13 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         return connection
     }
 
-    private fun <T : Any> getResponseFromConnection(
+    /**
+     * Get the Http response and parse the respective Shelly API response.
+     * @param connection The Http connection
+     * @param responseClass The class of the API response
+     * @return The parsed response
+     */
+    private fun <T : ShellyAPIResponse> getResponseFromConnection(
         connection: HttpURLConnection,
         responseClass: KClass<T>
     ): ShellyResponse<T> {
@@ -173,6 +200,6 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         }
     }
 
-    private fun <T : Any> parseJSON(text: String, responseClass: KClass<T>): T =
+    private fun <T : ShellyAPIResponse> parseJSON(text: String, responseClass: KClass<T>): T =
         Gson().fromJson(text, responseClass.java)
 }

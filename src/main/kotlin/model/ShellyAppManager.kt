@@ -5,6 +5,14 @@ import network.MockConnection
 import network.ShellyConnection
 import network.config.ShellyConfig
 
+/**
+ * The ShellyAppManager supports the usage of the Shelly 2PM Device. The Shelly device and the device, from which this
+ * program is executed, need to be in the same network. Therefore this application is not testable without the
+ * Shelly device. For this reason this class also has a testing mode where a mock connection is established and the
+ * features can be tested. It is triggered by using the credentials 'name', for the user name, and '1234',
+ * for the password.
+ *
+ */
 class ShellyAppManager {
 
     private lateinit var shellyConnection: IConnection
@@ -27,7 +35,8 @@ class ShellyAppManager {
     }
 
     fun initialise(user: String, password: String): Boolean {
-        shellyConnection = if(checkTestingMode(user, password)) MockConnection() else ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
+        shellyConnection =
+            if (checkTestingMode(user, password)) MockConnection() else ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
         return shellyConnection.initConnection(user, password)
     }
 
