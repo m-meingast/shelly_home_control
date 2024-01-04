@@ -26,7 +26,6 @@ class ShellyConfig {
         const val HTTP_TIMEOUT = 5000
 
         /* Party Mode Configuration */
-        const val SHELLY_PARTYMODE_DURATION = 10e3
 
         const val SHELLY_PARTYMODE_DELAY_LIGHT_ONE = 500L
 

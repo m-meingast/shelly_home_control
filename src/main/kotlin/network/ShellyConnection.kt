@@ -49,7 +49,7 @@ class ShellyConnection(private val endpoint: String) : IConnection {
         if (!isInitialised) return false
         partyModeActive = true
         runBlocking {
-            val channelOne = asyncPartyModeRequest(
+            asyncPartyModeRequest(
                 String.format(
                     ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE,
                     endpoint,
@@ -57,7 +57,7 @@ class ShellyConnection(private val endpoint: String) : IConnection {
                 ),
                 ShellyConfig.SHELLY_PARTYMODE_DELAY_LIGHT_ONE
             )
-            val channelTwo = asyncPartyModeRequest(
+            asyncPartyModeRequest(
                 String.format(
                     ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE,
                     endpoint,
@@ -99,33 +99,32 @@ class ShellyConnection(private val endpoint: String) : IConnection {
     private suspend fun asyncPartyModeRequest(
         endpoint: String,
         delay: Long
-    ): Deferred<ShellyResponse<ShellyAPIRelayResponse>> {
-        return CoroutineScope(Dispatchers.IO).async {
+    ) {
+        CoroutineScope(Dispatchers.IO).launch {
             var shellyResponse: ShellyResponse<ShellyAPIRelayResponse>? = null
             while (partyModeActive) {
-                var connection: HttpURLConnection? = null
+                var connection: HttpURLConnection?
                 connection = configureConnection(endpoint)
                 try {
                     shellyResponse = getResponseFromConnection(connection, ShellyAPIRelayResponse::class)
                 } catch (e: IOException) {
                     println(Exception("HTTP GET Request failed with response code: ${shellyResponse?.responseCode ?: "Unknown"}, message: ${e.message}"))
-                    break;
+                    break
                 } catch (e: Exception) {
                     println("ERROR occurred at Http Request: ${e.message}")
                     e.printStackTrace()
-                    break;
+                    break
                 } finally {
                     connection.disconnect()
                     delay(delay)
                 }
             }
-            return@async shellyResponse ?: ShellyResponse()
         }
     }
 
     private fun toggleLight(channel: Int): Boolean {
         if (!isInitialised) return false
-        var retVal = false;
+        var retVal = false
         runBlocking {
             val response: ShellyResponse<ShellyAPIRelayResponse> = asyncGetHttpRequest(
                 String.format(ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE, endpoint, channel),
