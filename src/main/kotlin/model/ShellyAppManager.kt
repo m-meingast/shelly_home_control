@@ -1,27 +1,27 @@
 package model
 
-import config.ShellyConfig
 import network.ShellyConnection
+import network.config.ShellyConfig
 
 class ShellyAppManager {
 
     private val shellyConnection = ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
 
-    fun initialise(): Boolean {
-        print("Enter user name: ")
-//        val user = readlnOrNull() ?: ""
-        val user = "user"
-        print("Enter password: \n")
-//        val password = readlnOrNull() ?: ""
-        val password = "user"
-        return shellyConnection.initConnection(user, password)
-
-
+    fun run() {
+        if (!initialise("user", "user")) return
+        start()
     }
 
-    fun run() {
-        if (!initialise()) return
-        start()
+    fun initialise(user: String, password: String): Boolean {
+        return shellyConnection.initConnection(user, password)
+    }
+
+    fun toggle1() {
+        shellyConnection.toggleLight1()
+    }
+
+    fun party() {
+        shellyConnection.enablePartyMode()
     }
 
     private fun start() {

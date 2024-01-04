@@ -1,10 +1,12 @@
-package config
+package network.config
 
 class ShellyConfig {
     companion object {
 
         /* HTTP URL Configuration */
-        const val HTTP_ENDPOINT = "http://10.0.0.175"
+        const val HTTP_PREFIX = "http://"
+
+        const val HTTP_ENDPOINT = "${HTTP_PREFIX}10.0.0.175"
 
         const val HTTP_SHELLY_STATUS = "%s/status"
 
@@ -20,8 +22,6 @@ class ShellyConfig {
 
 //        http://10.0.0.175/relay/0?turn=on
 
-        const val HTTP_PREFIX = "http://"
-
         /* Request Configuration */
         const val HTTP_REQUEST_METHOD_GET = "GET"
 
@@ -29,7 +29,11 @@ class ShellyConfig {
 
         /* Party Mode Configuration */
 
-        const val SHELLY_PARTYMODE_DELAY = 500L
+        const val SHELLY_PARTYMODE_DURATION = 10e3
+
+        const val SHELLY_PARTYMODE_DELAY_LIGHT_ONE = 500L
+
+        const val SHELLY_PARTYMODE_DELAY_LIGHT_TWO = 250L
 
         /* Response Code */
         const val HTML_RESPONSE_GOOD = 200

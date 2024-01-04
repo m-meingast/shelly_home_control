@@ -1,8 +1,8 @@
 package network
 
 import com.google.gson.Gson
-import config.ShellyConfig
 import kotlinx.coroutines.*
+import network.config.ShellyConfig
 import network.response.ShellyAPIRelayResponse
 import network.response.ShellyAPIStatusResponse
 import network.response.ShellyResponse
@@ -14,6 +14,9 @@ import java.net.HttpURLConnection
 import java.net.PasswordAuthentication
 import java.net.URL
 import kotlin.reflect.KClass
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.measureTime
 
 class ShellyConnection(private val endpoint: String) {
 
@@ -28,8 +31,6 @@ class ShellyConnection(private val endpoint: String) {
         runBlocking {
             val response: ShellyResponse<ShellyAPIStatusResponse> = asyncGetHttpRequest(
                 String.format(ShellyConfig.HTTP_SHELLY_STATUS, endpoint),
-                { println("SUCEESS: $it") },
-                { println("ERROR: ${it.message ?: "Error"}") },
                 ShellyAPIStatusResponse::class
             ).await()
             if (!response.isEmpty() && checkConnectionStatus(response))
@@ -55,14 +56,16 @@ class ShellyConnection(private val endpoint: String) {
                     ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE,
                     endpoint,
                     ShellyConfig.HTTP_SHELLY_CHANNEL_ONE
-                )
+                ),
+                ShellyConfig.SHELLY_PARTYMODE_DELAY_LIGHT_ONE
             )
             val channelTwo = asyncPartyModeRequest(
                 String.format(
                     ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE,
                     endpoint,
                     ShellyConfig.HTTP_SHELLY_CHANNEL_TWO
-                )
+                ),
+                ShellyConfig.SHELLY_PARTYMODE_DELAY_LIGHT_TWO
             )
             runBlocking {
                 val responseChannelOne = channelOne.await()
@@ -80,8 +83,6 @@ class ShellyConnection(private val endpoint: String) {
 
     private fun <T : Any> asyncGetHttpRequest(
         endpoint: String,
-        onSuccess: (ShellyResponse<T>) -> Unit,
-        onError: (Exception) -> Unit,
         responseClass: KClass<T>
     ): Deferred<ShellyResponse<T>> {
         return CoroutineScope(Dispatchers.IO).async {
@@ -89,11 +90,8 @@ class ShellyConnection(private val endpoint: String) {
             var shellyResponse: ShellyResponse<T>? = null
             try {
                 shellyResponse = getResponseFromConnection(connection, responseClass)
-
-                onSuccess(shellyResponse)
-
             } catch (e: IOException) {
-                onError(Exception("HTTP GET Request failed with response code: ${shellyResponse?.responseCode ?: "Unknown"}, message: ${e.message}"))
+                println(Exception("HTTP GET Request failed with response code: ${shellyResponse?.responseCode ?: "Unknown"}, message: ${e.message}"))
             } catch (e: Exception) {
                 println("ERROR occurred at Http Request: ${e.message}")
                 e.printStackTrace()
@@ -104,16 +102,18 @@ class ShellyConnection(private val endpoint: String) {
         }
     }
 
-    private fun asyncPartyModeRequest(
-        endpoint: String
+    private suspend fun asyncPartyModeRequest(
+        endpoint: String,
+        delay: Long
     ): Deferred<ShellyResponse<ShellyAPIRelayResponse>> {
         return CoroutineScope(Dispatchers.IO).async {
-            val connection: HttpURLConnection = configureConnection(endpoint)
             var shellyResponse: ShellyResponse<ShellyAPIRelayResponse>? = null
-            for (i in 0..<10) {
+            var timeTaken: Duration = 0.milliseconds
+            while (timeTaken < ShellyConfig.SHELLY_PARTYMODE_DURATION.milliseconds) {
+                var connection: HttpURLConnection? = null
+                connection = configureConnection(endpoint)
                 try {
                     shellyResponse = getResponseFromConnection(connection, ShellyAPIRelayResponse::class)
-                    println(shellyResponse)
                 } catch (e: IOException) {
                     println(Exception("HTTP GET Request failed with response code: ${shellyResponse?.responseCode ?: "Unknown"}, message: ${e.message}"))
                     break;
@@ -121,10 +121,13 @@ class ShellyConnection(private val endpoint: String) {
                     println("ERROR occurred at Http Request: ${e.message}")
                     e.printStackTrace()
                     break;
+                } finally {
+                    connection.disconnect()
+                    timeTaken += measureTime {
+                        delay(delay)
+                    }
                 }
-                delay(ShellyConfig.SHELLY_PARTYMODE_DELAY)
             }
-            connection.disconnect()
             return@async shellyResponse ?: ShellyResponse()
         }
     }
@@ -135,8 +138,6 @@ class ShellyConnection(private val endpoint: String) {
         runBlocking {
             val response: ShellyResponse<ShellyAPIRelayResponse> = asyncGetHttpRequest(
                 String.format(ShellyConfig.HTTP_SHELLY_LIGHT_TOGGLE, endpoint, channel),
-                { println("Success Light") },
-                { println("Error Light") },
                 ShellyAPIRelayResponse::class
             ).await()
             if (!response.isEmpty() && response.responseCode == ShellyConfig.HTML_RESPONSE_GOOD)
@@ -148,7 +149,7 @@ class ShellyConnection(private val endpoint: String) {
     private fun configureConnection(endpoint: String): HttpURLConnection {
         val url = URL(endpoint)
         val connection = url.openConnection() as HttpURLConnection
-        connection.setAuthenticator(authentication)
+//        connection.setAuthenticator(authentication)
         connection.requestMethod = ShellyConfig.HTTP_REQUEST_METHOD_GET
         connection.connectTimeout = ShellyConfig.HTTP_TIMEOUT
         return connection

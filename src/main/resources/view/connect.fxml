@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns:fx="http://javafx.com/fxml"
+          xmlns="http://javafx.com/javafx"
+          fx:controller="view.ConnectController"
+          hgap="5"
+          vgap="5">
+
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+
+    <columnConstraints>
+        <ColumnConstraints hgrow="SOMETIMES" halignment="LEFT"/>
+        <ColumnConstraints hgrow="ALWAYS" halignment="RIGHT"/>
+    </columnConstraints>
+
+    <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="0" prefWidth="150"/>
+    <Label text="Password" GridPane.columnIndex="0" GridPane.rowIndex="1" prefWidth="150"/>
+
+    <TextField fx:id="userNameField" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+    <PasswordField fx:id="passwordField" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+    <Button fx:id="connectBtn" text="Connect" GridPane.columnIndex="1" GridPane.rowIndex="2"
+            styleClass="btn, btn-primary"/>
+    <Label fx:id="validInputLabel" text="Info: Use 'name' and '1234 for testing mode" GridPane.columnIndex="0"
+           GridPane.rowIndex="3" GridPane.columnSpan="2"/>
+</GridPane>
