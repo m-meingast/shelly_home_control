@@ -31,7 +31,7 @@ class ConnectController {
                 return@setOnAction
             }
             validInputLabel.text = "Info: Connected and authorised successfully!"
-            rootController.enableButtons()
+            rootController.onDeviceConnected()
             (connectBtn.scene.window as Stage).close()
         }
     }

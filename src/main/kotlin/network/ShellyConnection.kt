@@ -14,14 +14,12 @@ import java.net.HttpURLConnection
 import java.net.PasswordAuthentication
 import java.net.URL
 import kotlin.reflect.KClass
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.measureTime
 
 class ShellyConnection(private val endpoint: String) {
 
     private var authentication: Authenticator? = null
     private var isInitialised: Boolean = false
+    private var partyModeActive: Boolean = false
 
     fun initConnection(userName: String, password: String): Boolean {
         var retVal = false
@@ -49,7 +47,7 @@ class ShellyConnection(private val endpoint: String) {
 
     fun enablePartyMode(): Boolean {
         if (!isInitialised) return false
-        var retVal = false;
+        partyModeActive = true
         runBlocking {
             val channelOne = asyncPartyModeRequest(
                 String.format(
@@ -67,18 +65,13 @@ class ShellyConnection(private val endpoint: String) {
                 ),
                 ShellyConfig.SHELLY_PARTYMODE_DELAY_LIGHT_TWO
             )
-            runBlocking {
-                val responseChannelOne = channelOne.await()
-                val responseChannelTwo = channelTwo.await()
-
-                if (!responseChannelOne.isEmpty() && responseChannelOne.responseCode == ShellyConfig.HTML_RESPONSE_GOOD
-                    && !responseChannelTwo.isEmpty() && responseChannelTwo.responseCode == ShellyConfig.HTML_RESPONSE_GOOD
-                ) {
-                    retVal = true
-                }
-            }
         }
-        return retVal
+        return true
+    }
+
+    fun disablePartyMode(): Boolean {
+        partyModeActive = false
+        return true
     }
 
     private fun <T : Any> asyncGetHttpRequest(
@@ -108,8 +101,7 @@ class ShellyConnection(private val endpoint: String) {
     ): Deferred<ShellyResponse<ShellyAPIRelayResponse>> {
         return CoroutineScope(Dispatchers.IO).async {
             var shellyResponse: ShellyResponse<ShellyAPIRelayResponse>? = null
-            var timeTaken: Duration = 0.milliseconds
-            while (timeTaken < ShellyConfig.SHELLY_PARTYMODE_DURATION.milliseconds) {
+            while (partyModeActive) {
                 var connection: HttpURLConnection? = null
                 connection = configureConnection(endpoint)
                 try {
@@ -123,9 +115,7 @@ class ShellyConnection(private val endpoint: String) {
                     break;
                 } finally {
                     connection.disconnect()
-                    timeTaken += measureTime {
-                        delay(delay)
-                    }
+                    delay(delay)
                 }
             }
             return@async shellyResponse ?: ShellyResponse()
@@ -149,7 +139,7 @@ class ShellyConnection(private val endpoint: String) {
     private fun configureConnection(endpoint: String): HttpURLConnection {
         val url = URL(endpoint)
         val connection = url.openConnection() as HttpURLConnection
-//        connection.setAuthenticator(authentication)
+        connection.setAuthenticator(authentication)
         connection.requestMethod = ShellyConfig.HTTP_REQUEST_METHOD_GET
         connection.connectTimeout = ShellyConfig.HTTP_TIMEOUT
         return connection

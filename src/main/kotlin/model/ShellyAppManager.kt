@@ -8,7 +8,19 @@ class ShellyAppManager {
     private val shellyConnection = ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
 
     fun run() {
-        if (!initialise("user", "user")) return
+        println("Enter user name and password (use 'name' and '1234' for testing mode)")
+        print("user name: ")
+        var user = readlnOrNull() ?: ""
+        print("password: ")
+        var password = readlnOrNull() ?: ""
+        while (!initialise(user, password)) {
+            println("Wrong credentials. Please try again!")
+            print("user name: ")
+            user = readlnOrNull() ?: ""
+            print("password: ")
+            password = readlnOrNull() ?: ""
+        }
+        println("Connected and authorised successfully")
         start()
     }
 
@@ -16,12 +28,20 @@ class ShellyAppManager {
         return shellyConnection.initConnection(user, password)
     }
 
-    fun toggle1() {
-        shellyConnection.toggleLight1()
+    fun toggleLight1(): Boolean {
+        return shellyConnection.toggleLight1()
     }
 
-    fun party() {
-        shellyConnection.enablePartyMode()
+    fun toggleLight2(): Boolean {
+        return shellyConnection.toggleLight2()
+    }
+
+    fun enablePartyMode(): Boolean {
+        return shellyConnection.enablePartyMode()
+    }
+
+    fun disablePartyMode(): Boolean {
+        return shellyConnection.disablePartyMode()
     }
 
     private fun start() {
@@ -32,7 +52,8 @@ class ShellyAppManager {
                 Choose option:
                 (1) - Toggle Light 1
                 (2) - Toggle Light 2
-                (3) - Party Mode
+                (3) - Activate Party Mode
+                (4) - Deactivate Party Mode
                 (*) - Any Input: Exit 
             """.trimIndent()
             )
@@ -43,12 +64,13 @@ class ShellyAppManager {
                 "1" -> shellyConnection.toggleLight1()
                 "2" -> shellyConnection.toggleLight2()
                 "3" -> shellyConnection.enablePartyMode()
+                "4" -> shellyConnection.disablePartyMode()
                 else -> false
             }
-            if (!retVal) println("Option $option did not succeed!")
+            println(if (retVal) "Option $option successful" else "Option $option did not succeed!")
         } while (continueLoop)
     }
 
     private fun isValidOption(option: String) =
-        (option == "1") || (option == "2") || (option == "3")
+        (option == "1") || (option == "2") || (option == "3") || (option == "4")
 }

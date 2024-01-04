@@ -8,7 +8,7 @@ import org.kordamp.bootstrapfx.BootstrapFX
 
 class ShellyControlGUI : Application() {
     override fun start(primaryStage: Stage) {
-        val loader = FXMLLoader(this::class.java.getResource("test.fxml"))
+        val loader = FXMLLoader(this::class.java.getResource("shellyControl.fxml"))
         val scene = Scene(loader.load())
         scene.stylesheets.add(BootstrapFX.bootstrapFXStylesheet())
         val viewController: ViewController = loader.getController()

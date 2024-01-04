@@ -20,8 +20,6 @@ class ShellyConfig {
 
         const val HTTP_SHELLY_CHANNEL_TWO = 1
 
-//        http://10.0.0.175/relay/0?turn=on
-
         /* Request Configuration */
         const val HTTP_REQUEST_METHOD_GET = "GET"
 
