@@ -1,11 +1,13 @@
 package model
 
+import network.IConnection
+import network.MockConnection
 import network.ShellyConnection
 import network.config.ShellyConfig
 
 class ShellyAppManager {
 
-    private val shellyConnection = ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
+    private lateinit var shellyConnection: IConnection
 
     fun run() {
         println("Enter user name and password (use 'name' and '1234' for testing mode)")
@@ -25,6 +27,7 @@ class ShellyAppManager {
     }
 
     fun initialise(user: String, password: String): Boolean {
+        shellyConnection = if(checkTestingMode(user, password)) MockConnection() else ShellyConnection(ShellyConfig.HTTP_ENDPOINT)
         return shellyConnection.initConnection(user, password)
     }
 
@@ -73,4 +76,7 @@ class ShellyAppManager {
 
     private fun isValidOption(option: String) =
         (option == "1") || (option == "2") || (option == "3") || (option == "4")
+
+    private fun checkTestingMode(user: String, password: String) =
+        user == ShellyConfig.TESTING_MODE_USERNAME && password == ShellyConfig.TESTING_MODE_PASSWORD
 }

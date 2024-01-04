@@ -15,13 +15,13 @@ import java.net.PasswordAuthentication
 import java.net.URL
 import kotlin.reflect.KClass
 
-class ShellyConnection(private val endpoint: String) {
+class ShellyConnection(private val endpoint: String) : IConnection {
 
     private var authentication: Authenticator? = null
     private var isInitialised: Boolean = false
     private var partyModeActive: Boolean = false
 
-    fun initConnection(userName: String, password: String): Boolean {
+    override fun initConnection(userName: String, password: String): Boolean {
         var retVal = false
         authentication = getAuthenticator(userName, password)
         isInitialised = true
@@ -37,15 +37,15 @@ class ShellyConnection(private val endpoint: String) {
         return retVal
     }
 
-    fun toggleLight1(): Boolean {
+    override fun toggleLight1(): Boolean {
         return toggleLight(ShellyConfig.HTTP_SHELLY_CHANNEL_ONE)
     }
 
-    fun toggleLight2(): Boolean {
+    override fun toggleLight2(): Boolean {
         return toggleLight(ShellyConfig.HTTP_SHELLY_CHANNEL_TWO)
     }
 
-    fun enablePartyMode(): Boolean {
+    override fun enablePartyMode(): Boolean {
         if (!isInitialised) return false
         partyModeActive = true
         runBlocking {
@@ -69,7 +69,8 @@ class ShellyConnection(private val endpoint: String) {
         return true
     }
 
-    fun disablePartyMode(): Boolean {
+    override fun disablePartyMode(): Boolean {
+        if(!isInitialised) return false
         partyModeActive = false
         return true
     }
